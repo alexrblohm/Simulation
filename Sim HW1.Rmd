@@ -1,0 +1,24 @@
+---
+title: "Sim HW1"
+author: "Alex Blohm"
+date: "8/28/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Simulation HW 1
+1. Chapter 3, Exercise 2 
+
+```{r}
+
+
+
+```
+
+2. Chapter 3, Exercise 7 
+3. Chapter 3, Exercise 10 
+4. Chapter 3, Exercise 12 
+5. Chapter 3, Exercise 13
