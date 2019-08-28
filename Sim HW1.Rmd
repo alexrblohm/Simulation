@@ -21,7 +21,7 @@ Let h(x,n) = 1+x+x2 +···+
 
 #for n = 2
 #h(x, 2)= 1 + x + x^2
-
+n=10
 h=1
 x=2
 for (i in 1:n){
