@@ -62,8 +62,57 @@ Minimum_function(test)
 
 ```
 
-4. Chapter 3, Exercise 12 
+
+4. Chapter 3, Exercise 12 The game of craps is played as follows. First, you roll two six-sided dice; let x be the sum of the dice on the first roll. If x = 7 or 11 you win, otherwise you keep rolling until either you get x again, in which case you also win, or until you get a 7 or 11, in which case you lose.
+Write a program to simulate a game of craps. You can use the following snippet of code to simulate the roll of two (fair) dice:
+x <- sum(ceiling(6*runif(2)))
+```{r}
+#set.seed(1) for testing
+
+craps_testing <- function() {
+  roll_1 <- sum(ceiling(6*runif(2)))
+  if (roll_1 == 7 | roll_1 == 11) {print( paste("rolled a", roll_1, "you win"))}
+  else {
+  print(roll_1)
+  dice_roll <- sum(ceiling(6*runif(2)))
+  while (dice_roll != roll_1 & dice_roll != 7 & dice_roll != 11)
+ {
+    print(dice_roll)
+dice_roll <- sum(ceiling(6*runif(2)))
+  }
+  if (dice_roll == roll_1) print(paste("Your roll matched your first roll, YOU WIN!!!", dice_roll))
+  else print(paste("You lose, life is hard...", dice_roll))
+}}
+
+craps_testing()
+```
+
+Answer
+```{r}
+craps <- function() {
+  roll_1 <- sum(ceiling(6*runif(2)))
+  if (roll_1 == 7 | roll_1 == 11) {print( paste("rolled a", roll_1, "you win"))}
+  else {
+  dice_roll <- sum(ceiling(6*runif(2)))
+  while (dice_roll != roll_1 & dice_roll != 7 & dice_roll != 11)
+ {
+dice_roll <- sum(ceiling(6*runif(2)))
+  }
+  if (dice_roll == roll_1) print("Your roll matched your first roll, YOU WIN!!!")
+  else print("You lose, life is hard...")
+}}
+
+craps()
+```
+
+
+
 5. Chapter 3, Exercise 13
+```{r}
+
+
+
+```
 
 
 
