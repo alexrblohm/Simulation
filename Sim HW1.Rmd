@@ -106,12 +106,13 @@ craps()
 ```
 
 
-
-5. Chapter 3, Exercise 13
+5. Chapter 3, Exercise 13 Suppose that (x(t), y(t)) has polar coordinates (t, 2πt). Plot (x(t), y(t))
+for t ∈ [0, 10]. Your plot should look like Figure 3.3.
 ```{r}
-
-
-
+t <- seq(0, 10, by = 0.0001)
+x <- t *cos(2*pi*t)
+y <- t *sin(2*pi*t)
+plot(x, y)
 ```
 
 
