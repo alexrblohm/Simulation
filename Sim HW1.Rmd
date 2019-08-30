@@ -26,12 +26,23 @@ h=1
 x=2
 for (i in 1:n){
   h <- h + x^i
-  print(h)
+  #print(h)
 }
 
+print(h)
 ```
 
 2. Chapter 3, Exercise 7 
+How would you find the sum of every third element of a vector x?
+```{r}
+library(dplyr)
+#x <- c(1,2,3,4,5,6,7)
+
+x[seq(1, length(x), by = 3)] %>%
+  sum()
+```
+
+
 3. Chapter 3, Exercise 10 
 4. Chapter 3, Exercise 12 
 5. Chapter 3, Exercise 13
