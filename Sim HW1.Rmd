@@ -43,6 +43,33 @@ x[seq(1, length(x), by = 3)] %>%
 ```
 
 
-3. Chapter 3, Exercise 10 
+3. Chapter 3, Exercise 10 Write a program that uses a loop to find the minimum of a vector x, without using any predefined functions like min(...) or sort(...).
+You will need to define a variable, x.min say, in which to keep the smallest value you have yet seen. Start by assigning x.min <- x[1] then use a for loop to compare x.min with x[2], x[3], etc. If/when you find x[i] < x.min, update the value of x.min accordingly.
+```{r}
+test <- c(10:1, 50)
+Minimum_function <- function(x){
+  
+  x.min <- x[1]
+  for (i in 1:length(x)){
+    if (x[i] < x.min) {
+      x.min <- x[i] 
+    }
+  }
+  print(x.min)
+}
+
+Minimum_function(test)
+
+```
+
 4. Chapter 3, Exercise 12 
 5. Chapter 3, Exercise 13
+
+
+
+
+
+
+
+
+
