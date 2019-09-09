@@ -2,7 +2,12 @@
 title: "Sim HW1"
 author: "Alex Blohm"
 date: "8/28/2019"
-output: html_document
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
 ---
 
 ```{r setup, include=FALSE}

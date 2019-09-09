@@ -1,0 +1,43 @@
+---
+title: "Sim_HW2"
+author: "Alex Blohm"
+date: "9/9/2019"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Homework 2
+
+#1. Chapter 5, Exercise 3
+
+#2. Chapter 5, Exercise 5
+
+#3. 
+Using the mtcars dataset (it’s pre-loaded into R), construct a histgram of the the mile per gallon (mpg) variable first using R’s base graphics and then again with ggplot.
+
+#4. 
+Construct a scatterplot of miles per gallon (mpg) versus weight (wt) using R’s base graphics then again with ggplot.
+
+#5. 
+Write code to make the following plots (First plot uses the mtcars data set; the second plot used the diamonds data set from the dplyr package):
+
+
+
+
+
+
+
+
+
+
+
+

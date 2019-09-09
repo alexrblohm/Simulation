@@ -1,0 +1,10 @@
+name: Publish Document
+title:
+username:
+account: rpubs
+server: rpubs.com
+hostUrl: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/523742/48e3258a915e4a12940f722507aa985a
+bundleId: https://api.rpubs.com/api/v1/document/523742/48e3258a915e4a12940f722507aa985a
+url: http://rpubs.com/alexRblohm/523742
+when: 1567616237.00356
