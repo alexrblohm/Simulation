@@ -198,7 +198,9 @@ Construct a scatterplot of miles per gallon (mpg) versus weight (wt) using R’s
 ```{r}
 
 plot(mtcars$mpg,mtcars$wt)
-ggplot(mtcars,aes(x=mpg, y=wt))+geom_point()
+ggplot(mtcars,aes(x=mpg, y=wt))+
+  geom_point() +
+  coord_fixed()
 ```
 
 
