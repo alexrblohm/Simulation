@@ -98,7 +98,7 @@ TRUE
 ```{r}
 wins_write <- function(){ 
   game <-sixes()
-  write.table(game, file = "sixes_sim.txt", sep = "", append = T)
+  write.table(game, file = "sixes_sim.txt", sep = "", append = T, col.names = F,row.names = T)
 }
 
 replicate(n=10, wins_write())
