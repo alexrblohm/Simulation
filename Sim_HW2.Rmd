@@ -125,15 +125,95 @@ Write a function that takes as parameters x1, r, and n, generates the first
 n terms of the discrete dynamical system above, and then plots them.
 The logistic map is a simple model for population growth subject to resource constraints: if xn is the population size at year n, then xn+1 is the size at year n+1. Type up your code, then see how the system evolves for different starting values x1 and different values of r.
 Figure 5.2 gives some typical output.
+```{r}
+
+dis_dyn_system <- function(r,x1,n){
+  xn <- as.vector(rep(NA,n))
+  if (n == 1) {
+  cat("called x1\n") 
+  xn[1] <- x1
+  return(xn)
+} else {
+  xn[n] <- r*xn[n]*(1 - xn[n])
+  cat(n, "\n", xn[n-1])
+  return (dis_dyn_system(r=r,x1=x1,n=n-1))
+}
+}
+
+dis_dyn_system(r=1, x1=1.1, n=5)
+
+```
+
+Take 2
+```{r}
+
+dis_dyn_system <- function(r,x1,n){
+  xn <- as.vector(rep(NA,n))
+  if (n == 1) {
+  cat("called x1\n") 
+  
+} else {
+  cat(n, "\n", xn[n-1])
+  xn[n] <- r*xn[n]*(1-xn[n])
+  #dis_dyn_system(r=r,x1=x1,n=n-1)*(1 - dis_dyn_system(r=r,x1=x1,n=n-1))
+  n <- n-1
+}
+}
+
+dis_dyn_system(r=1, x1=1.1, n=5)
+
+```
+
+Take 3
+```{r}
+dis_dyn_system <- function(r,x1,n){
+xn <- rep(NA,n)
+  for (i in 1:n){
+    if (i==1) {xn[1]=x1}
+    else {
+      xn[i]=r*xn[i-1]*(1-xn[i-1])
+    }
+  }
+out_df <- data.frame(X = c(1:n), Y = xn)
+g <- ggplot(out_df,aes(x=X, y=Y)) + geom_point()
+return(g)
+}
+
+dis_dyn_system(r=4, x1=0.1, n=100)
+```
+
 
 #3. 
 Using the mtcars dataset (it’s pre-loaded into R), construct a histgram of the the mile per gallon (mpg) variable first using R’s base graphics and then again with ggplot.
+```{r}
+
+hist(mtcars$mpg)
+ggplot(mtcars,aes(x=mpg))+geom_histogram(bins = 5)
+
+```
+
 
 #4. 
 Construct a scatterplot of miles per gallon (mpg) versus weight (wt) using R’s base graphics then again with ggplot.
+```{r}
+
+plot(mtcars$mpg,mtcars$wt)
+ggplot(mtcars,aes(x=mpg, y=wt))+geom_point()
+```
+
 
 #5. 
 Write code to make the following plots (First plot uses the mtcars data set; the second plot used the diamonds data set from the dplyr package):
+```{r}
+ggplot(mtcars, aes(x=factor(am), y=mpg, fill=factor(am)))+
+  geom_violin() +
+  ggtitle("MPG by transmission") +
+  theme(axis.text.x =  element_blank() ,
+        axis.ticks.x = element_blank())+
+  scale_fill_discrete(name="Type") +
+  scale_x_discrete(name="")
+
+```
 
 
 
