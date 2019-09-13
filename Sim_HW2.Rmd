@@ -14,12 +14,117 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r}
+library(tidyverse)
+```
 
 Homework 2
 
 #1. Chapter 5, Exercise 3
+In this question we simulate the rolling of a die. To do this we use the function runif(1), which returns a ‘random’ number in the range (0,1). To get a random integer in the range {1, 2, 3, 4, 5, 6}, we use ceiling(6*runif(1)), or if you prefer, sample(1:6,size=1) will do the same job.
+
+##(a). 
+
+Suppose that you are playing the gambling game of the Chevalier de M ́er ́e. That is, you are betting that you get at least one six in 4 throws of a die. Write a program that simulates one round of this game and prints out whether you win or lose.
+Check that your program can produce a different result each time you run it.
+
+```{r}
+
+roll <- function() {return(ceiling(6*runif(1)))}
+
+game <- function(){
+four_rolls <- c(roll(),roll(),roll(),roll())
+  if (four_rolls[1] == 6 | four_rolls[2] == 6 | four_rolls[3] == 6 | four_rolls[4] == 6) print("You win") else print("you lose")
+}
+game()
+```
+
+
+##(b). 
+
+Turn the program that you wrote in part (a) into a function sixes,
+which returns TRUE if you obtain at least one six in n rolls of a fair die, and returns FALSE otherwise. That is, the argument is the number of rolls n, and the value returned is TRUE if you get at least one six and FALSE otherwise.
+How would you give n the default value of 4?
+
+```{r}
+
+sixes <- function(n=4){
+output <- replicate(n=n, ceiling(6*runif(1)))==6
+if (T %in% output){return(T)} else {return(F)}
+}
+sixes()
+
+```
+
+
+##(c). 
+
+Now write a program that uses your function sixes from part (b), to simulate N plays of the game (each time you bet that you get at least 1 six in n rolls of a fair die). Your program should then determine the proportion of times you win the bet. This proportion is an estimate of the probability of getting at least one 6 in n rolls of a fair die.
+Run the program for n = 4 and N = 100, 1000, and 10000, conducting several runs for each N value. How does the variability of your results depend on N?
+The probability of getting no 6’s in n rolls of a fair die is (5/6)n, so the probability of getting at least one is 1 − (5/6)n. Modify your program so that it calculates the theoretical probability as well as the simulation estimate and prints the difference between them. How does the accuracy of your results depend on N?
+You may find the replicate function useful here.
+
+```{r}
+
+game_sim_prop <- function(N){
+wins <- replicate(n=N, sixes())
+win_prop <- length(wins[wins==T])/N
+return(win_prop)
+}
+
+game_sim_prop(N=4)
+game_sim_prop(N=100)
+game_sim_prop(N=1000)
+game_sim_prop(N=10000)
+
+```
+
+Theoretical Probability
+```{r}
+1-(5/6)^4 #Theoretical Probability
+```
+
+
+##(d). 
+In part (c), instead of processing the simulated runs as we go, suppose we first store the results of every game in a file, then later postprocess the results.
+Write a program to write the result of all N runs to a textfile sixes_sim.txt, with the result of each run on a separate line. For example, the first few lines of the textfile could look like
+TRUE
+       FALSE
+       FALSE
+       TRUE
+       FALSE
+       .
+.
+```{r}
+wins_write <- function(){ 
+  game <-sixes()
+  write.table(game, file = "sixes_sim.txt", sep = "", append = T)
+}
+
+replicate(n=10, wins_write())
+
+```
+
+Now write another program to read the textfile sixes_sim.txt and again determine the proportion of bets won.
+This method of saving simulation results to a file is particularly important when each simulation takes a very long time (hours or days), in which case it is good to have a record of your results in case of a system crash.
+
+```{r}
+
+read_file("sixes_sim.txt")
+
+```
+
 
 #2. Chapter 5, Exercise 5
+
+For r ∈ [0,4], the logistic map of [0,1] into [0,1] is defined as f(x) =
+rx(1 − x).
+Given a point x1 ∈ [0,1] the sequence {xn}∞n=1 given by xn+1 = f(xn) is
+called the discrete dynamical system defined by f.
+Write a function that takes as parameters x1, r, and n, generates the first
+n terms of the discrete dynamical system above, and then plots them.
+The logistic map is a simple model for population growth subject to resource constraints: if xn is the population size at year n, then xn+1 is the size at year n+1. Type up your code, then see how the system evolves for different starting values x1 and different values of r.
+Figure 5.2 gives some typical output.
 
 #3. 
 Using the mtcars dataset (it’s pre-loaded into R), construct a histgram of the the mile per gallon (mpg) variable first using R’s base graphics and then again with ggplot.
