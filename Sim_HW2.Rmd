@@ -72,12 +72,13 @@ win_prop <- length(wins[wins==T])/N
 return(win_prop)
 }
 
-game_sim_prop(N=4)
 game_sim_prop(N=100)
 game_sim_prop(N=1000)
 game_sim_prop(N=10000)
 
 ```
+
+As N increases, the variability decreases and the simulated probability approaches the theoretical value.
 
 Theoretical Probability
 ```{r}
@@ -101,7 +102,6 @@ wins_write <- function(){
   write.table(game, file = "sixes_sim.txt", sep = "", append = T, col.names = F,row.names = T)
 }
 
-replicate(n=10, wins_write())
 
 ```
 
@@ -212,11 +212,20 @@ ggplot(mtcars, aes(x=factor(am), y=mpg, fill=factor(am)))+
   ggtitle("MPG by transmission") +
   theme(axis.text.x =  element_blank() ,
         axis.ticks.x = element_blank())+
-  scale_fill_discrete(name="Type") +
-  scale_x_discrete(name="")
+  scale_fill_discrete(name="Type",  labels = c("Automatic", "Manual")) +
+  scale_x_discrete(name="") +
+  ylab("Miles Per Gallon (MPG)")
 
 ```
 
+
+```{r}
+ggplot(data=diamonds, aes(x=carat, y=price, group = cut)) + 
+  geom_point() +
+  geom_smooth() +
+  facet_wrap(~cut)
+
+```
 
 
 
