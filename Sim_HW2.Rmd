@@ -97,11 +97,13 @@ TRUE
        .
 .
 ```{r}
-wins_write <- function(){ 
-  game <-sixes()
-  write.table(game, file = "sixes_sim.txt", sep = "", append = T, col.names = F,row.names = T)
+
+wins_write <- function(N){ 
+  replicate(n=N,write.table(sixes(), file = "sixes_sim.txt", sep = "", append = T, col.names = F,row.names = F, quote = F))
+  return()
 }
 
+wins_write(N=100)
 
 ```
 
@@ -110,8 +112,8 @@ This method of saving simulation results to a file is particularly important whe
 
 ```{r}
 
-read_file("sixes_sim.txt")
-
+out <- read.table("sixes_sim.txt", header = F)
+sum(out$V1)/nrow(out)
 ```
 
 
@@ -125,44 +127,6 @@ Write a function that takes as parameters x1, r, and n, generates the first
 n terms of the discrete dynamical system above, and then plots them.
 The logistic map is a simple model for population growth subject to resource constraints: if xn is the population size at year n, then xn+1 is the size at year n+1. Type up your code, then see how the system evolves for different starting values x1 and different values of r.
 Figure 5.2 gives some typical output.
-```{r}
-
-dis_dyn_system <- function(r,x1,n){
-  xn <- as.vector(rep(NA,n))
-  if (n == 1) {
-  cat("called x1\n") 
-  xn[1] <- x1
-  return(xn)
-} else {
-  xn[n] <- r*xn[n]*(1 - xn[n])
-  cat(n, "\n", xn[n-1])
-  return (dis_dyn_system(r=r,x1=x1,n=n-1))
-}
-}
-
-dis_dyn_system(r=1, x1=1.1, n=5)
-
-```
-
-Take 2
-```{r}
-
-dis_dyn_system <- function(r,x1,n){
-  xn <- as.vector(rep(NA,n))
-  if (n == 1) {
-  cat("called x1\n") 
-  
-} else {
-  cat(n, "\n", xn[n-1])
-  xn[n] <- r*xn[n]*(1-xn[n])
-  #dis_dyn_system(r=r,x1=x1,n=n-1)*(1 - dis_dyn_system(r=r,x1=x1,n=n-1))
-  n <- n-1
-}
-}
-
-dis_dyn_system(r=1, x1=1.1, n=5)
-
-```
 
 Take 3
 ```{r}
@@ -180,6 +144,7 @@ return(g)
 }
 
 dis_dyn_system(r=4, x1=0.1, n=100)
+dis_dyn_system(r=3.56, x1=0.1, n=100)
 ```
 
 
