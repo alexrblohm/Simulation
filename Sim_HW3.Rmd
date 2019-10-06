@@ -1,0 +1,268 @@
+---
+title: "Sim_HW3"
+author: "Alex Blohm"
+date: "9/26/2019"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+
+#1. 
+Chapter 9, Exercise 4
+```{r}
+log_1plusx <- function(x, error_thresh){
+i  <- 2; csum <- x; last_term <- x
+while (abs(last_term) > error_thresh){
+last_term <- ((-1)^(i-1)*x^i)/i
+csum <-csum + last_term
+i <- i + 1
+}
+
+return(c(i-1, csum))
+}
+
+log_1plusx(x=.5, error_thresh = 10^(-16))
+#log(1.5)
+```
+48 terms, because I started at 2...!
+
+##Attempt 1- Failure
+$$log(2)=log(\sqrt4)=log((\sqrt{1+3})=1/2log(1+3)$$
+```{r}
+#log_1plusx(x=1, error_thresh = 10^(-16)) will not finish
+#1/2*log_1plusx(x=3, error_thresh = 10^(-16))
+```
+welp, that failed...
+
+##Attempt 2- Success
+$$log(2)=log(\sqrt2^2)=2log(\sqrt2)=2log(1+(\sqrt2 - 1))$$
+```{r}
+2*log_1plusx(x=sqrt(2)-1, error_thresh = 10^(-16))[2]
+log(2)
+#Number of terms:
+log_1plusx(x=sqrt(2)-1, error_thresh = 10^(-16))[1]
+```
+
+WOOO FINALLY!
+
+#2. 
+Chapter 9, Exercise 5
+
+The first formula requires a difference and an exponent inside the the summation, while the second function does the summation first (so you don't need to multiply the number operations).
+
+I am guessing the first function is 2n operations and the second is one n.
+
+#3.
+Chapter 9, Exercise 9
+```{r}
+
+conv <- function(x,y){
+n <- length(x)
+z <- rep(0, 2*n)
+for (k in (1:(2*n))){
+  low <- max(1, k-n+1)
+  high <- min(k,n)
+  for (i in (low:high)){
+    z[k] <- z[k] + x[i]*y[k-i+1]
+  }
+}
+return(z)
+}
+
+x1 <- c(1:100)
+y1 <- c(1:100)
+str <- Sys.time()
+conv(x1,y1)
+stp <- Sys.time()
+stp-str
+```
+
+```{r}
+
+conv2 <- function(x,y){
+z <- convolve(x,rev(y), type="o")
+return(z)
+}
+
+
+str <- Sys.time()
+conv2(x1,y1)
+stp <- Sys.time()
+stp-str
+```
+
+This was quicker!
+
+#4
+Question 10. Use the system.time function to compare the relative time that it takes to perform addition, multiplication, powers, and other simple operations. You may wish to perform each more than once!
+Perform each operation 1000 times and store the time it takes to run each. Then compare the distributions of each.)
+
+```{r}
+out <- c(NA,NA)
+addition <- function(x){
+  for (i in 1:length(x)) {
+    out[i] <- x[i] + 10
+  }
+#return (out)
+}
+
+inp <- c(1:1000)
+addition(inp)
+str <- Sys.time()
+addition(inp)
+stp <- Sys.time()
+stp-str
+
+mult <- function(x){
+  for (i in 1:length(x)) {
+    out[i] <- x[i] * 10
+  }
+#return (out)
+}
+
+str <- Sys.time()
+mult(inp)
+stp <- Sys.time()
+stp-str
+
+exp <- function(x){
+  for (i in 1:length(x)) {
+    out[i] <- x[i] ^ 10
+  }
+#return (out)
+}
+
+str <- Sys.time()
+exp(inp)
+stp <- Sys.time()
+stp-str
+```
+
+
+#5. 
+Chapter 10, Exercise 3. (These functions are in the pacakge “spuRs”)
+```{r}
+library(spuRs)
+
+fixedpoint(ftn = cos, x0 = 0)
+```
+
+```{r}
+f <- function(x){
+ fx <- cos(x)-x
+ dfx <- -sin(x)-1
+ return(c(fx, dfx))
+}
+newtonraphson(ftn = f, x0 = 0)
+
+```
+
+
+
+#6. 
+Chapter 10, Exercise 10.
+
+##a.
+```{r}
+f <- function(x){
+ fx <- sin(x)
+ dfx <- cos(x)
+ return(c(fx, dfx))
+}
+newtonraphson(ftn = f, x0 = 3)
+```
+
+##b
+```{r}
+f <- function(x, n = 10){
+  sum <- 0
+    for(k in 0:n){
+      out <- ((-1)^k*(x^(2*k+1)))/(factorial(2*k + 1))
+      sum <- sum + out
+    }
+  return(sum)
+}
+f(1,5)
+range <- seq(0,7,.01)
+
+y <- range %>% map_dbl(f)
+data <- data.frame(range, y)
+ggplot(data, aes(x=range, y=y)) + geom_point()
+
+k=1;x=1
+(-1)^k*(x^(2*k+1))/factorial(2*k + 1)
+```
+
+```{r}
+#secant_meth first 2 rounds
+3.1-f(3.1)*(3.1-3)/(f(3.1) - f(3))
+1.56726-f(1.56726)*(1.56726 - 3.1)/(f(1.56726) - f(3.1))
+f
+secant_meth <- function(x0, x1, f, n=10){
+  x <- c(x0, x1, rep(NA, n))  
+  for (i in (2:n)){
+        x[i+1] <- x[i] - f(x[i])*(x[i]-x[i-1])/(f(x[i])-f(x[i-1]))
+        print(x[i+1])
+}
+      return(x[n])
+}
+secant_meth(3,3.1, f)
+```
+
+
+
+#7. 
+(Grad Only) Use the Newton-Raphson algorithm to find the roots of the following function (there are 3 roots):
+f (x) = x3 − 1957x2 + 1187296x − 210305472
+```{r}
+f <- function(x){
+  fx <- x^3 - 1957*x^2 + 1187296*x - 210305472
+  dfx <- 3*x^2 - 2*1957*x + 1187296
+  return(c(fx, dfx))
+}
+newtonraphson(f, x0 = 0)
+
+f1 <- function(x){
+  fx <- x^3 - 1957*x^2 + 1187296*x - 210305472
+  return(fx)
+}
+range <- seq(300,1000, 10)
+y <- range %>% map_dbl(f1)
+dat <- data.frame(range, y)
+ggplot(dat, aes(x=range, y)) + geom_point()
+```
+
+```{r}
+
+newtonraphson(f, x0 = 850)
+```
+
+
+```{r}
+range <- seq(500,800, 10)
+y <- range %>% map_dbl(f1)
+dat <- data.frame(range, y)
+ggplot(dat, aes(x=range, y)) + geom_point()
+
+newtonraphson(f, x0 = 760)
+```
+
+
+
+
+
+
+
+
