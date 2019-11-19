@@ -1,0 +1,9 @@
+Package: HW5Pack
+Type: Package
+Title: Random Letters Function
+Version: 1.0
+Date: 2019-11-19
+Author: alexRblohm
+Maintainer: Alex <alexrblohm@gmail.com>
+Description: Outputs a Random Letter
+License: What license is it under?
