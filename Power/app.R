@@ -36,6 +36,7 @@ ui <- fluidPage(
                      max = 0.10,
                      value = 0.05),
         checkboxInput("Type_I", "Type I Error", value = FALSE),
+        checkboxInput("Type_II", "Type II Error", value = FALSE),
         checkboxInput("Power", "Power", value = FALSE)
       ),
       mainPanel(
@@ -140,21 +141,33 @@ server <- function(input, output) {
   output$t_plot <- renderPlot({
     standard <- function(x) {dnorm(x, mean = 0, sd = input$Std / sqrt(input$Sample_Size))}
     shifted <- function(x) {dnorm(x, mean = input$TRUE_DIFF, sd = input$Std / sqrt(input$Sample_Size))}
-    ggplot(data.frame(x = c(-4, 12)), aes(x = x)) +
+    p <- ggplot(data.frame(x = c(-4, 12)), aes(x = x)) +
       #ylim(c(0,0.6)) +
       stat_function(fun = shifted, col = "red") + 
-      stat_function(fun = standard) + 
-      stat_function(fun = shifted, 
-                    xlim = c(qnorm(1 - input$Type_1_Error, mean = 0, sd = input$Std / sqrt(input$Sample_Size)), 12), 
-                    geom = "area",
-                    col = "red",
-                    fill = "red",
-                    alpha = .5) +
-      if(input$Type_I == T) {stat_function(fun = dnorm, args = list(mean = 0, sd = input$Std / sqrt(input$Sample_Size)), 
+      stat_function(fun = standard)
+      if(input$Type_I == T) {
+        p <- p + stat_function(fun = dnorm, args = list(mean = 0, sd = input$Std / sqrt(input$Sample_Size)), 
                     xlim = c(qnorm(1 - input$Type_1_Error, mean = 0, sd = input$Std / sqrt(input$Sample_Size)), 12), 
                     geom = "area",
                     alpha = .5)
       }
+      if(input$Power == T) {
+          p <- p + stat_function(fun = shifted, 
+                                 xlim = c(qnorm(1 - input$Type_1_Error, mean = 0, sd = input$Std / sqrt(input$Sample_Size)), 12), 
+                                 geom = "area",
+                                 col = "red",
+                                 fill = "red",
+                                 alpha = .5)
+      }
+    if(input$Type_II == T) {
+      p <- p + stat_function(fun = shifted, 
+                             xlim = c(-4, qnorm(1 - input$Type_1_Error, mean = 0, sd = input$Std / sqrt(input$Sample_Size))), 
+                             geom = "area",
+                             col = "green",
+                             fill = "green",
+                             alpha = .5)
+    }
+    p
   })
   
 }
