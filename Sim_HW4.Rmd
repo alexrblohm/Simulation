@@ -1,0 +1,526 @@
+---
+title: "Sim_HW4"
+author: "Alex Blohm"
+date: "10/23/2019"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Libs
+```{r}
+library(tidyverse)
+```
+
+#1. Chapter 18, Exercise 4.
+
+4. Consider the discrete random variable with pmf given by:
+P(X=1)=0.1, P(X=2)=0.3, P(X=5)=0.6. 
+
+
+##Plot the cdf for this random variable.
+
+```{r}
+data1 <- data.frame(
+x <- c(0, 1, 2, 5, 10),
+y <- c(0, .1, .4, 1, 1)
+)
+ggplot(data1, aes(x=x, y=y)) + geom_step()
+```
+
+##Write a program to simulate a random variable with this distribution, using the built-in function runif(1).
+```{r}
+funk <- function(){
+value <- runif(1)
+out <- NA
+if (value > 0.4) {out = 5}
+else if (value > 0.1 & value <= .4) {out = 2}
+else {out = 1}
+return(out)
+}
+funk()
+```
+
+
+#2. (GRAD ONLY) Chapter 18, Exercise 11a. 
+
+11. (a).
+
+Here is some code for simulating a discrete random variable Y . What
+is the probability mass function (pmf) of Y ?
+Y.sim <- function() {
+  U <- runif(1)
+  Y <- 1
+  while (U > 1 - 1/(1+Y)) {
+Y <- Y + 1
+}
+return(Y) }
+Let N be the number of times you go around the while loop when Y.sim() is called. What is EN and thus what is the expected time taken for this function to run?
+
+If Y = 1
+$$ U > 1 - \frac{1}{1+1}$$
+$$ U > 1 - \frac{1}{2}$$
+$$ U >\frac{1}{2}$$
+$$ P(Y=1) >\frac{1}{2}$$
+
+If Y = 2
+$$ U > 1 - \frac{1}{1+1}$$
+$$ U > 1 - \frac{1}{3}$$
+$$ U >\frac{2}{3}$$
+$$ P(Y=2) >\frac{1}{3}$$
+
+If Y = 3
+$$ U > 1 - \frac{1}{1+3}$$
+$$ U > 1 - \frac{1}{4}$$
+$$ U >\frac{3}{4}$$
+$$ P(Y=3) >\frac{1}{4}$$
+
+PMF of Y is $\frac{1}{1 + Y}$
+
+```{r}
+Y.sim <- function() {
+  U <- runif(1)
+  Y <- 1
+  while (U > 1 - 1/(1+Y)) {
+Y <- Y + 1
+}
+return(Y) 
+}
+
+SIM <- replicate(Y.sim(), n = 100000)
+mean(SIM)
+```
+
+Re-running this gives me very different values each time.  We know that the harmonic series does not converge (but the sequence does), and this is a form of the harmonic series, therefore it does not converge.  So E(Y) does not exist, because this is not a valid CDF (i.e. the infinite sum does not converge). 
+
+
+#3. Chapter 18, Exercise 12.
+
+12. People arrive at a shoe store at random. Each person then looks at a random number of shoes before deciding which to buy.
+
+##(a). 
+Let N be the number of people that arrive in an hour. Given that EN = 10, what would be a good distribution for N?
+
+Poisson($\lambda = 10$)
+
+##(b). 
+Customer i tries on Xi pairs of shoes they do not like before finding a pair they like and then purchase (Xi ∈ {0, 1, . . .}). Suppose that the chance they like a given pair of shoes is 0.8, independently of the other shoes they have looked at. What is the distribution of Xi?
+
+This sounds Geometric(p = .80) 
+Note that this only counts shoes that are tried on, but NOT purchased.
+
+
+##(c). 
+Let Y be the total number of shoes that have been tried on, excluding those purchased. Supposing that each customer acts independently of other customers, give an expression for Y in terms of N and the Xi, then write functions for simulating N, Xi, and Y.
+
+$$Y = \sum_{i=1}^{N} X_i$$
+
+```{r}
+Shoes_Tried_NOT_Bought<- function(){
+N = rpois(n=1, lambda = 10)
+X <- rgeom(n = N, p = .8)
+Y <- sum(X)
+out <- list(N = N, X = X, Y = Y)
+return(out)
+}
+Shoes_Tried_NOT_Bought()
+```
+
+
+##(d). 
+What is P(Y = 0)?
+
+Cases for number of people in the store
+Case 1, if 0 people come into the store:
+$$ p(x = 0, λ = 10) = \frac{e^{-10} 10^0}{0!} * 1$$
+
+Times 1 because there is a 100% chance of these zero people putting back shoes.
+
+Case 2, if 1 person comes into the store:
+$$ p(x = 1, λ = 10) = \frac{e^{-10} 10^1}{1!} * (.80) $$
+Times .80 because geometric prob.
+
+Case 3, if 2 people come into the store:
+$$ p(x = 2, λ = 10) = \frac{e^{-10} 10^2}{2!} * (.80)^2$$
+
+Case n, if n people come into the store:
+$$ p(x = n, λ = 10) = \frac{e^{-10} 10^n}{n!} * (.80)^n$$
+
+So the theoretical probability is the sum of all the cases:
+$$ p(Y = 0) = \sum_{j= 0}^{\infty} \frac{e^{-10} 10^j}{j!} * (.80)^j$$
+```{r}
+individual_case <- function(j){
+  (exp(-10)*10^j)/(factorial(j)) * (.8^j)
+}
+Theoretical <- c(1:150) %>% map_dbl(~individual_case(.x)) %>% sum(); Theoretical
+```
+
+Theoretically, but better than a psuedo-infinite sum:
+The theoretical probability is the sum of all the cases:
+$$  e^{-10}  \sum_{j= 0}^{\infty} \frac{10^j}{j!} * (.80)^j = e^{-10}  \sum_{j= 0}^{\infty} \frac{(.80*10)^j}{j!} = e^{-10}*e^{8}$$
+```{r}
+exp(-10)*exp(8)
+```
+
+
+Use your simulation of Y to estimate P(Y = 0). If your confidence interval includes the true value, then you have some circumstantial evidence that your simulation is correct.
+```{r}
+out <-replicate(10000, Shoes_Tried_NOT_Bought()) %>%  t() %>% as.tibble() %>% select("Y") %>% unlist()
+sum(out == 0) / length(out)
+
+```
+
+
+
+#4. Chapter 18, Exercise 13.
+
+13. Consider the continuous random variable with pdf given by: f(x)=� 2(x−1)2 for 1<x≤2,
+0 otherwise.
+Plot the cdf for this random variable.
+Show how to simulate a rv with this cdf using the inversion method.
+
+$$f(x) = 3(x-1)^2, 1<x\leq2$$
+$$CDF = \int_1 ^ x 3(x-1)^2 dx = \int_1 ^ x 3x^2 - 6x + 3 dx = \left[x^3 - 3x^2 + 3x\right]_1 ^x = (x^3 - 3x^2 + 3x) - (1-3+3) = x^3 - 3x^2 + 3x - 1$$
+
+Because I know this simplifies, I use long division:
+
+$$\frac{x^2 - 2x + 1}{(x-1)| x^3 - 3x^2 + 3x - 1}$$
+$$\underline{-x^3+x^2}$$
+$${-2x^2+3x - 1}$$
+$$\underline{-(-2x^2 + 2x)}$$
+$${x - 1}$$
+
+So $x^3 - 3x^2 + 3x - 1 = (x-1)(x^2 - 2x + 1)$ Then we can show by factoring:
+$$x^3 - 3x^2 + 3x - 1 = (x - 1)(x - 1)(x - 1) = (x-1)^3$$
+
+Now finding the inverse is much easier:
+$$x = (y-1)^3 \iff x^{1/3} + 1 = y$$
+$$f^{-1} =  x^{1/3} + 1$$
+
+```{r}
+inv <- function(x){
+  x^(1/3) +1
+}
+u <- runif(1000)
+y <- inv(u)
+```
+
+
+
+```{r}
+CDF <- function(x){
+  x^3 - 3*x^2 + 3*x -1
+}
+X = seq(1,2,.00001)
+Y = CDF(X)
+dat <- data.frame(X, Y)
+ggplot(dat, aes(x=X, y=Y)) + geom_point()
+
+
+```
+
+
+
+#5. Chapter 18, Exercise 14.
+
+14. Consider the continuous random variable X with pdf given by:
+fX (x) = exp (−x) − ∞ < x < ∞. (1 + exp (−x))2
+X is said to have a standard logistic distribution. Find the cdf for this random variable. Show how to simulate a rv with this cdf using the inversion method.
+
+$$PDF = \frac{e^{-x}}{(1 + e^{-x})^2} $$
+
+$$CDF = \int_{-\infty}^x \frac{e^{-x}}{(1 + e^{-x})^2} dx $$
+
+Let $u = (1 + e^{-x})dx$, then $du = -e^{-x}dx$
+
+$$CDF = -\int_{-\infty}^x \frac{1}{u^2} du = - \left[ \frac{u^{-1}}{-1} \right]_{x = - \infty} ^x = \left[ \frac{u^{-1}}{1} \right]_{x = - \infty} ^x = \left[ \frac {1}{u} \right]_{x = - \infty} ^x = \frac{1}{1 + e^{-x}} $$
+
+Finding the inverse:
+$$x = \frac{1}{1 + e^{-y}} \iff \frac{1}{x} = 1 + e^{-y} \iff  \frac{1}{x} - 1 = e^{-y}$$
+
+$$log\left(\frac{1}{x} - 1 \right) = -y$$
+
+$$f^{-1} = -log \left(\frac{1}{x} - 1 \right)$$
+
+```{r}
+f_inv <- function(x){
+  -log(1/x -1)
+}
+u <- runif(1000)
+y <- f_inv(u)
+hist(y)
+```
+
+
+
+#6. (GRAD ONLY) Chapter 18, Exercise 17. 
+17. The continuous random variable X has the following probability density function (pdf), for some positive constant c,
+$$f(x) = \frac{3}{(1 + x)^3}$$
+f(x) = 3 for 0 ≤ x ≤ c. (1 + x)3
+
+##(a). 
+Prove that c = √3 − 1.
+$$\int_{x=0} ^c \frac{3}{(1 + x)^3}dx = 1$$
+
+Let $u = (1+x)$ and $du = 1dx$ so:
+$$\iff \int_{x=0} ^c \frac{3}{u^3}du = 1$$
+$$\iff \int_{u=1} ^{1 + c} 3u^{-3}du = 1$$
+$$\iff \frac{-3}{2} \left[ u^{-2} \right]_{u=1} ^{1 + c}  = 1$$
+$$\iff \frac{-3}{2} \left[ \frac{1}{(1+c)^{2}} - \frac{1}{1^2} \right]  = 1$$
+$$\iff   \frac{1}{(1+c)^{2}} - 1  = \frac{-2}{3}$$
+$$\iff   \frac{1}{(1+c)^{2}} = \frac{1}{3}$$
+$$\iff    (1+c)^{2} = 3$$
+$$\iff    1+c = \pm \sqrt {3}$$
+$$\iff    c = \pm \sqrt {3} - 1$$
+
+Since c is > 0 by definition:
+$$ c = \sqrt {3} - 1$$
+
+##(b). 
+What is EX? (Hint:EX=E(X+1)−1.)
+$$\mathop{\mathbb{E}} [X] =  \mathop{\mathbb{E}} [X+1] - 1 = 3 \int_{x=0} ^ {\sqrt {3} - 1} \frac{x+1}{(x+1)^3}dx-1$$
+$$= 3 \int_{x=0} ^ {\sqrt {3} - 1} \frac{1}{(x+1)^2}dx-1$$
+
+Let $u = (1+x)$ and $du = 1dx$ so:
+$$=3 \int_{x=0} ^ {\sqrt {3} - 1} \frac{1}{u^2}du -1  = 3 \int_{x=0} ^ {\sqrt {3} - 1} u^{-2}du -1$$
+$$ = -3 \left[u^{-1} \right]_{u=1} ^ {\sqrt {3}} -1 = -3\left[\frac{1}{\sqrt 3} - 1 \right] -1 = \frac{-3}{\sqrt {3}} + 2$$
+
+
+##(c). 
+What is Var X ? (Hint: start with E(X + 1)2 .)
+$$\mathop{\mathbb{E}} [(X + 1)^2] =  \mathop{\mathbb{E}} [X^2 + 2X+1] = \mathop{\mathbb{E}} [X^2] + 2*\mathop{\mathbb{E}}[X]+1]$$
+
+$$\mathop{\mathbb{E}} [(X + 1)^2] = 3 \int_{x=0} ^ {\sqrt {3} - 1} \frac{(x+1)^2}{(x+1)^3}dx = 3 \int_{x=0} ^ {\sqrt {3} - 1} \frac{1}{(x+1)}dx$$
+
+Let $u = x + 1$ so $du = 1dx$ :
+
+$$= 3 \int_{x=0} ^ {\sqrt {3} - 1} \frac{1}{u}dx = 3 [log(u)]_{u=1} ^ {\sqrt{3}} = 3log(\sqrt{3})$$
+
+So 
+
+$$\mathop{\mathbb{E}}[X^2] = \mathop{\mathbb{E}} [(X + 1)^2] - 2\mathop{\mathbb{E}}[X] - 1$$
+
+$$Var[X] = \mathop{\mathbb{E}}[X^2] - (\mathop{\mathbb{E}}[X])^2$$
+Substituting:
+$$Var[X] = \mathop{\mathbb{E}} [(X + 1)^2] - 2\mathop{\mathbb{E}}[X] - 1 - (\mathop{\mathbb{E}}[X])^2$$
+
+$$\iff Var[X] = 3log(\sqrt{3}) - 2\left(\frac{-3}{\sqrt {3}} + 2\right) - 1 - \left(\frac{-3}{\sqrt {3}} + 2\right)^2 $$
+$$\iff Var[X] = 3log(\sqrt3) + \left(\frac{6}{\sqrt {3}} - 4\right) - 1 - \left(\frac{9}{3} - \frac{-12}{\sqrt{3}} + 4\right)$$
+
+$$\iff Var[X] = 3log(\sqrt{3}) + \frac{18}{\sqrt{3}} - 12$$
+
+
+##(d). 
+Using the inversion method, write a function that simulates X.
+
+$$CDF = \int_{x=0} ^{x} \frac{3}{(1 + x)^3} dx $$
+
+Let $u = (1+x)$ so $du = 1 dx$
+$$ 3\int_{u=1} ^{x+1} \frac{1}{u^3} du =  \frac{-3}{2}\left[\frac{1}{u^2}\right]_{u=1} ^{x+1} =  \frac{-3}{2}\left[\frac{1}{(x+1)^2} - 1\right]$$
+
+Now to find the inverse
+$$x =   \frac{-3}{2}\left[\frac{1}{(y+1)^2} - 1\right] $$
+$$\iff \frac{-2x + 3}{3} = \frac{1}{(y+1)^2} $$
+
+$$\iff \frac{3}{-2x + 3} = (y+1)^2 $$
+$$\iff \pm \sqrt{\frac{3}{-2x + 3} }= y+1 $$
+
+$$\iff f^{-1} =  + \sqrt{\frac{3}{-2x + 3} }-1 $$
+
+$$\iff Var[X] = 3log(\sqrt{3}) + \frac{18}{\sqrt{3}} - 12$$
+
+Only positive, because the support is positive
+```{r}
+inverse <- function(x){
+  sqrt(3/(-2*x + 3)) - 1
+}
+u <- runif(10000)
+y <- inverse(u)
+hist(y)
+c(mean(y),var(y))
+mean_theory <- -3/sqrt(3) + 2
+var_theory <- 3*log(sqrt(3)) + 18/sqrt(3) - 12
+c(mean_theory, var_theory)
+```
+
+  
+
+#7. (GRAD ONLY) Chapter 18, Exercise 18.
+
+18. The Cauchy distribution with parameter α has pdf
+$$f(x) = \frac{\alpha}{\pi(\alpha^2 + x^2)}$$
+fX (x) = α − ∞ < x < ∞.
+ π(α2 +x2)
+Write a program to simulate from the Cauchy distribution using the inversion method.
+$$ CDF = \int _{-\infty} ^x \frac{\alpha}{\pi(\alpha^2 + x^2)} dx = \frac{1}{\pi}\int  _{-\infty} ^x  \frac{\alpha * \frac{1}{\alpha^2}}{(\alpha^2 + x^2)* \frac{1}{\alpha^2}} dx =  \frac{1}{\pi}\int  _{-\infty} ^x  \frac{\frac{1}{\alpha}}{1 + \left(\frac{x}{\alpha}\right)^2} dx$$
+
+Let $u = \frac{x}{\alpha}$ so $du = \frac{1}{\alpha}dx$
+
+$$ = \frac{1}{\pi}\int  _{x= -\infty} ^x  \frac{1}{1 + u^2} dx =  \frac{1}{\pi} arctan(u) =  \frac{1}{\pi} arctan \left(\frac{x}{\alpha}\right)$$
+
+Inverse
+$$x = \frac{1}{\pi} arctan \left(\frac{y}{\alpha}\right)$$
+$$\pi x = arctan \left(\frac{y}{\alpha}\right)$$
+$$f^{-1} = \alpha tan(\pi x)$$
+
+```{r}
+Cauchy_inv <- function(alpha, x){
+  alpha * tan(pi*x)
+}
+```
+
+
+
+Now consider using a Cauchy envelope to generate a standard normal random variable using the rejection method. Find the values for α and the scaling constant k that minimise the probability of rejection. Write an R program to implement the algorithm.
+
+$$k^* = sup_x \frac{f(x)}{h(x)} = sup_x \frac{\frac{e^{-x^2/2}}{\sqrt{2\pi}}}{\frac{\alpha}{\pi(\alpha^2 + x^2)}} =  sup_x \frac{e^{-x^2/2}}{\sqrt{2\pi}}*\frac{\pi(\alpha^2 + x^2)}{\alpha}$$
+
+To maximize we need to take the derivative and set that equal to 0 (using product rule):
+$$ \frac{d}{dx}\frac{e^{-x^2/2}}{\sqrt{2\pi}}*\frac{\pi(\alpha^2 + x^2)}{\alpha} = \frac{\pi}{\sqrt{2\pi}*\alpha}*\left(e^{-x^2/2}*(-x)*(\alpha^2 + x^2) + e^{-x^2/2}*2x\right) = 0$$
+
+$$e^{-x^2/2}\left(-\alpha^2x - x^3 + 2x \right)= 0$$
+
+$$e^{-x^2/2} = 0$$ 
+
+Not a maximum because the log(0) is negative infinity
+
+$$-\alpha^2x - x^3 + 2x = 0 \iff x(-\alpha^2 - x^2 + 2) = 0$$
+
+x = 0 is a possible sup
+
+$$ -\alpha^2 - x^2 + 2 = 0 \iff x^2 = 2 - \alpha^2 \iff x = \pm \sqrt{2-\alpha^2}$$
+
+With x = 0
+$$k^*_1 =  \frac{1}{\sqrt{2\pi}}*\frac{\pi(\alpha^2)}{\alpha} =  \frac{\pi\alpha}{\sqrt{2\pi}}$$
+
+With $x = \sqrt{2-\alpha^2}$ (Note, because of squaring, the negatve version will be the same).
+$$k^*_2 = \frac{e^{-1+\alpha/2}}{\sqrt{2\pi}}*\frac{\pi(\alpha^2 + 2 - \alpha^2)}{\alpha} = \frac{e^{-1+\alpha/2}}{\sqrt{2\pi}}*\frac{2\pi}{\alpha} $$
+
+Let's define all two k* possibilities
+```{r}
+#kstar1 <- pi*alpha/sqrt(2*pi)
+#kstar2 <- exp(-1+alpha/2)/sqrt(2*pi)*pi*(2)/alpha
+
+
+norm.sim1 <- function(alpha) {
+  reject_count <- 0
+  
+f <- function(x) {1/sqrt(2*pi)*exp(-X^2/2)}
+h <- function(x) {alpha/(pi*(alpha*2+x^2))}
+kstar1 <- pi*alpha/sqrt(2*pi)
+while (TRUE) {
+X <- alpha * tan(pi*runif(1))
+Y <- runif(1, 0, kstar1*h(X))
+if (Y < f(X)) return(c(X, reject_count))
+else reject_count <- reject_count + 1
+}
+}
+
+norm.sim1(alpha = 1)
+ 
+norm.sim2 <- function(alpha) {
+  reject_count <- 0
+
+f <- function(x) {1/sqrt(2*pi)*exp(-X^2/2)}
+h <- function(x) {alpha/(pi*(alpha*2+x^2))}
+kstar2 <- 1/sqrt(2*pi)*pi*(alpha^2+1)/alpha
+while (TRUE) {
+X <- alpha * tan(pi*runif(1))
+Y <- runif(1, 0, kstar2*h(X))
+if (Y < f(X)) return(c(X, reject_count))
+else reject_count <- reject_count + 1 
+}
+}
+norm.sim2(alpha = 1)
+
+Rejection_sum1 <- function(alp, N){
+output <- replicate(norm.sim1(alpha = alp), n=N) %>% t() %>% as.tibble()
+sum1 <-sum(output$V2)
+return(sum1)
+}
+
+Rejection_sum2 <- function(alp, N){
+output <- replicate(norm.sim2(alpha = alp), n=N) %>% t() %>% as.tibble()
+sum2 <-sum(output$V2)
+return(sum2)
+}
+
+alpha_seq <- seq(.01, 10, .01)
+
+X = rep(alpha_seq, 2)
+
+Y1 <- map_dbl(alpha_seq, function(x) Rejection_sum1(alp = x, N=100))
+Y2 <- map_dbl(alpha_seq, function(x) Rejection_sum2(alp = x, N=100))
+Y<- c(Y1, Y2) 
+
+kstar <- c(rep("k1star", length(alpha_seq)), rep("k2star", length(alpha_seq)))
+
+data <- data.frame(X, Y, kstar)
+ggplot(data, aes(x=X, y = Y, col=kstar)) + geom_line() + xlab("Alpha") + ylab("Simulated Number of Rejections")
+```
+
+From my beautiful graph, it looks like my k1star 
+$$k^*_1 =  \frac{\pi\alpha}{\sqrt{2\pi}}$$
+tends to perfom a little better when alpha is small (which seems typical for a Cauchy distribution).  Also, the optimal alpha appears to be less than 1.  So I will do this simulation again with smaller alpha values
+
+```{r}
+alpha_seq <- seq(.01, 1, .001)
+X = rep(alpha_seq, 2)
+
+Y1 <- map_dbl(alpha_seq, function(x) Rejection_sum1(alp = x, N=500))
+Y2 <- map_dbl(alpha_seq, function(x) Rejection_sum2(alp = x, N=500))
+Y<- c(Y1, Y2) 
+
+kstar <- c(rep("k1star", length(alpha_seq)), rep("k2star", length(alpha_seq)))
+
+data <- data.frame(X, Y, kstar)
+ggplot(data, aes(x=X, y = Y, col=kstar)) + geom_line() + xlab("Alpha") + ylab("Simulated Number of Rejections")
+```
+
+
+```{r}
+alpha_seq <- seq(.25, 1, .001)
+X = rep(alpha_seq, 2)
+
+Y1 <- map_dbl(alpha_seq, function(x) Rejection_sum1(alp = x, N=400))
+Y2 <- map_dbl(alpha_seq, function(x) Rejection_sum2(alp = x, N=400))
+Y<- c(Y1, Y2) 
+
+kstar <- c(rep("k1star", length(alpha_seq)), rep("k2star", length(alpha_seq)))
+
+data <- data.frame(X, Y, kstar)
+ggplot(data, aes(x=X, y = Y, col=kstar)) + geom_line() + xlab("Alpha") + ylab("Simulated Number of Rejections")
+```
+
+Now we can more clearly see k1star winning so I will look only at k1star
+```{r}
+
+alpha_seq <- seq(0.01, .5, .001)
+X = alpha_seq
+
+Y1 <- map_dbl(alpha_seq, function(x) Rejection_sum1(alp = x, N=500))
+#Y2 <- map_dbl(alpha_seq, function(x) Rejection_sum2(alp = x, N=500))
+Y<- c(Y1, Y2) 
+
+kstar <- c(rep("k1star", length(alpha_seq)), rep("k2star", length(alpha_seq)))
+
+data <- data.frame(X, Y1)
+ggplot(data, aes(x=X, y = Y1)) + geom_line() + xlab("Alpha") + ylab("Simulated Number of Rejections")
+
+```
+
+So I think the best combination for lowest rejection is k1star, and alpha = 0.01 (Since 0 seems to be giving me an error).
+
+
+
+
+
+
+

@@ -1,0 +1,181 @@
+---
+title: "Sim_Project"
+author: "Alex Blohm"
+date: "10/26/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+Libraries
+```{r}
+library(tidyverse)
+library(shiny)
+library(shinydashboard)
+#library(ggridges)
+```
+
+Practice
+```{r}
+TRUE_DIFF <- 1
+set.seed(42)
+Sample_1 <- rnorm(1000, mean = 0, sd = 1)
+S1 <- density(Sample_1)
+str(S1)
+
+Sample_2 <- rnorm(1000, mean = 0 + TRUE_DIFF, sd = 1)
+S2 <- density(Sample_2)
+
+Alpha <- .05
+Type1_cut <- quantile(Sample_1, probs = 1-Alpha)
+#Sample_1 %>% mutate(Type1_Error = ifelse(Sample_1 >= Type1_cut, T1_Error, None))
+
+DF <- data.frame(X = c(S1$x, S2$x), Y = c(S1$y, S2$y), G = c(rep("1",length(S1$x)), rep("2", length(S2$x))))
+  
+Type1_Error <- DF %>% filter(G == 1) %>% 
+  mutate(Type1_Error = ifelse(X >= Type1_cut, "T1_Error", "None")) %>% 
+  select(X, Type1_Error)
+
+Type2_Error <- DF %>% filter(G == 2) %>% 
+  mutate(Type2_Error = ifelse(X <= Type1_cut, "T2_Error", "None")) %>% 
+  select(X, Type2_Error)
+
+Power <- DF %>% filter(G == 2) %>% 
+  mutate(Power = ifelse(X >= Type1_cut, "Power", "NOPE")) %>% 
+  select(X, Power)
+
+DF <- merge(DF, Type1_Error, by = "X", all = T) %>%
+  mutate(Type1_Error = replace_na(Type1_Error,"None")) %>%
+  
+  merge(Type2_Error, by = "X", all = T) %>%
+  mutate(Type2_Error = replace_na(Type2_Error,"None")) %>%
+  
+  merge(Power, by = "X", all = T) %>%
+  mutate(Power = replace_na(Power,"NOPE"))
+
+#density(DF$X)
+#DF %>% group_by(G) %>% summarise(Dens = density(X))
+
+ggplot(DF, aes(x = X, y = Y, group = G, col = G)) + 
+  geom_line() +
+  geom_vline(xintercept = quantile(Sample_1, probs = .95), col = "red", linetype = "dashed") +
+  geom_area(data = filter(DF, Type1_Error == 'T1_Error'), fill = 'red', alpha = .3) +
+  geom_area(data = filter(DF, Type2_Error == 'T2_Error'), fill = 'green', alpha = .3) +
+  geom_area(data = filter(DF, Power == 'Power'), fill = 'blue', alpha = .3) 
+  # stat_function(fun = dnorm,
+  #               geom = "area",
+  #               xlim = c(quantile(Sample_1, probs = .95), 10),
+  #               fill = "red",
+  #               alpha = .3
+  #               ) 
+#  geom_area(mapping = aes(x = ifelse(X>quantile(Sample_1, probs = .95) , x, 0)), fill = "red")
+
+```
+
+1-Sided, One Sample T Test Against Mean = 0
+```{r}
+
+```
+
+
+
+Shiny
+```{r}
+
+header <- dashboardHeader()
+
+sidebar <- dashboardSidebar(
+  # Create a select list
+  selectInput(inputId = "Population_Distribution",
+              label = "Population Distribution",
+              choices = c("Normal", "Uniform")),
+  sliderInput(
+  inputId = "Sample_Size",
+  label = "Sample Size",
+  min = 1,
+  max = 100,
+  value = 30
+  ),
+  sliderInput(
+  inputId = "Alpha",
+  label = "Alpha",
+  min = 0,
+  max = .3,
+  value = .05
+  ),
+   sliderInput(
+  inputId = "Pop_Std",
+  label = "Population Standard Deviation",
+  min = 0,
+  max = 10,
+  value = 3
+  ),
+sliderInput(
+  inputId = "True_Diff",
+  label = "True Mean Mu",
+  min = 0,
+  max = 100,
+  value = 1
+  )
+)
+
+body <- dashboardBody(
+  textOutput("Population_Distribution"),
+  plotOutput("plot"),
+  textOutput("Sim_Power_t")
+)
+
+# Create the UI using the header, sidebar, and body
+ui <- dashboardPage(skin = "red",
+                    header = header,
+                    sidebar = sidebar,
+                    body = body
+                    )
+
+#Server
+server <- function(input, output) {
+  
+    Population <- reactive({ rnorm(10000, mean = 0 + input$True_Diff, sd = 1) })
+    #Population <- rnorm(10000, mean = 0 + 10, sd = 1)
+
+  
+    One_Sided_TTest <- function(Sample_size = 30, alpha = .05) {
+     Sample <- sample(Population(), size = Sample_size)
+      t_test <- t.test(Sample, alternative = "greater", mu = 0, conf.level = 1-alpha)
+      Reject <- t_test$p.value < .05
+      return(Reject)
+    }
+
+  #Simulated Power
+  Sim_Power_ttest <- reactive({sum(replicate(One_Sided_TTest(), n = 1000)) / 1000})
+  
+  #Theoretical Power
+  Hyp_Dist <- function(x) {rt(100, df = Sample_size - 1)}
+  True_Dist <- function(x) {dt(x - 1, 1.5)}
+  ggplot(data.frame(x = c(-4, 10)), aes(x = x)) +
+    stat_function(fun = True_Dist) +
+    stat_function(fun = Hyp_Dist)
+
+
+
+  output$Sim_Power_t <- renderText({Sim_Power_ttest()})
+
+  output$Population_Distribution <- renderText({input$Population_Distribution})
+
+  output$plot <- renderPlot({
+    ggplot(DF, aes(x = X, y = Y, group = G, col = G)) +
+    geom_line() +
+    geom_vline(xintercept = quantile(Sample_1, probs = .95), col = "red", linetype = "dashed") +
+    geom_area(data = filter(DF, Type1_Error == 'T1_Error'), fill = 'red', alpha = .3) +
+    geom_area(data = filter(DF, Type2_Error == 'T2_Error'), fill = 'green', alpha = .3) +
+    geom_area(data = filter(DF, Power == 'Power'), fill = 'blue', alpha = .3)
+  })
+}
+
+shinyApp(ui, server)
+```
+

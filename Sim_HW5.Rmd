@@ -1,0 +1,66 @@
+---
+title: "Sim_HW5"
+author: "Alex Blohm"
+date: "11/13/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+1. (25 points) Write a function that returns a randomly chosen letter of the alphabet.
+```{r}
+random_letters <- function(){
+sample(LETTERS, 1)
+}
+```
+
+
+2. (25 points) Run this function some large number of times (e.g. 100000 or 1000000) using parallel computation. Compare the time it takes to running it not in parallel.
+```{r}
+library(tidyverse)
+library(doParallel)
+N = 1000000
+
+Start <- Sys.time()
+out <- replicate(random_letters(), n=N)
+end <- Sys.time()
+Start - end
+
+Start <- Sys.time()
+out <- c(1:N) %>% map_chr(~random_letters())
+end <- Sys.time()
+Start - end
+
+Start <- Sys.time()
+out <- lapply(1:N, function(x) {sample(LETTERS, 1)})
+end <- Sys.time()
+Start - end
+
+Start <- Sys.time()
+out <- mclapply(1:N, function(x) {sample(LETTERS, 1)})
+end <- Sys.time()
+Start - end
+
+```
+
+
+3. (25 points) Create an R package that contains this function.
+```{r}
+# library(devtools)
+# install_github("alexrblohm/Simulation/HW5Pack")
+# library(HW5Pack)
+# random_letters2()
+help(random_letters2)
+```
+
+
+4. (25 points) If you do not have one, set up a github account. Put the package on github.
+
+
+
+
+
+
+

@@ -1,0 +1,220 @@
+---
+title: "Sim_Exam1"
+author: "Alex Blohm"
+date: "10/11/2019"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Libs
+```{r}
+library(tidyverse)
+```
+
+
+#1. YAHTZEE!!!
+Yahtzee is a game played with 5 dice. You can find the full rules here: https://en.wikipedia.org/wiki/Yahtzee
+
+##(a) (10 points) 
+
+Write a function that simulates the rolling of 5 six-sided die. This function should return a vector of length 5.
+```{r}
+
+set.seed(42)
+YAH_roll <- function(){
+output <- replicate(n=5, ceiling(6*runif(1)))
+return(output)
+}
+YAH_roll()
+
+```
+
+
+##(b) (10 points) 
+
+A small straight occurs when four of the dice are sequential numbers. Using the function written in the previous part, estimate the probability using Monte Carlo simulation that you will roll a small straight on a SINGLE roll of the five dice (i.e. You roll all five dice once, and exactly four of them are sequential).
+```{r}
+Straights <- function(N){
+  games <- replicate(YAH_roll(), n=N)
+
+  f <- function(x) {
+    sorted <- sort(x)
+    Win <- (sorted[1] == sorted[2] - 1) & (sorted[1] == sorted[3] - 2) & (sorted[1] == sorted[4] -3) |     
+      (sorted[1] == sorted[3] - 1) & (sorted[1] == sorted[4] - 2) & (sorted[1] == sorted[5] -3) |
+      (sorted[1] == sorted[2] - 1) & (sorted[1] == sorted[4] - 2) & (sorted[1] == sorted[5] -3) |
+      (sorted[2] == sorted[3] - 1) & (sorted[2] == sorted[4] - 2) & (sorted[2] == sorted[5] -3)
+    return(Win)
+  }
+apply(games, 2, f)
+}
+sum(Straights(N=10000)/10000)
+```
+
+
+##(c) (10 points) 
+Repeat the previous problem, but with a full house (i.e. three dice match and the other two dice match).
+```{r}
+FULL_House <- function(N){
+  games <- replicate(YAH_roll(), n=N)
+
+  f <- function(x) {
+    sorted <- sort(x)
+    if (sorted[1] == sorted[2] & 
+        sorted[2] == sorted[3] & 
+        sorted[3] == sorted[4] & 
+        sorted[4] == sorted[5]){
+      Win <- F #Yahtzee
+    }
+    else{
+    Win <- (sorted[1]==sorted[2] & 
+              sorted[3]==sorted[4] & 
+              sorted[4]==sorted[5] | 
+                        sorted[4]==sorted[5] & 
+                        sorted[1]==sorted[2] & 
+                        sorted[2]==sorted[3])
+    }
+    return(Win)
+  }
+apply(games, 2, f)
+}
+
+sum(FULL_House(N=100000)/100000)
+
+```
+
+##(d) (10points)
+Repeat the previous problem, but estimate the probability that none of the five dice match on a single roll.
+```{r}
+NoMatch <- function(N){
+  games <- replicate(YAH_roll(), n=N)
+
+  f <- function(x) {
+    sorted <- sort(x)
+    if (sorted[1] != sorted[2] & 
+        sorted[2] != sorted[3] & 
+        sorted[3] != sorted[4] & 
+        sorted[4] != sorted[5]){
+      Win <- T 
+    }
+    else{
+    Win <- F
+    }
+    return(Win)
+  }
+apply(games, 2, f)
+}
+sum(NoMatch(N=10000)/10000)
+
+```
+
+#2. (20 points) 
+Write a function that will find roots of a function using the secant method. This function sholuld take in a function and a starting point and return the loction of a root. Use this function to find at least 5 roots of the function f(x) = sin(ex) + cos(e−x).
+```{r}
+secant_meth <- function(x0, f, n=20){
+  x1 <- x0 + 0.01
+  x <- c(x0, x1, rep(NA, n))  
+  for (i in (2:n)){
+        x[i+1] <- x[i] - f(x[i])*(x[i]-x[i-1])/(f(x[i])-f(x[i-1]))
+}
+      return(x[n])
+}
+
+func<- function(x){ sin(exp(x)) + cos(exp(-x))}
+secant_meth(0, func, n = 9)
+secant_meth(1, func, n = 13)
+secant_meth(4, func, n = 14)
+secant_meth(5, func, n = 16)
+secant_meth(6, func, n = 20)
+secant_meth(10, func, n = 20)
+
+#xseq = seq(0, 100, .00001)
+#yseq = func(xseq)
+#data <- data.frame(xseq, yseq)
+#ggplot(data = data, aes(x=xseq, y=yseq)) + geom_point(size=.001)
+
+```
+
+
+#3. (10 points) 
+Write a function that generates random numbers between 0 and 1 using the Mersenne-Twister algoritm. Input to the function should be A, B, and m, and the function should return a random number between 0 and 1.
+```{r}
+
+Merc_Twisty <- function(seed = as.numeric(Sys.time()), leng = 1, m = 2^32, A = 1664525, B = 1013904223){
+  x <- c(seed, rep(NA, leng))
+   
+  for (i in 1:leng){
+    x[i + 1] <- (A*x[i] + B) %% m
+  }
+return(x[-1]/m)
+}
+
+Merc_Twisty(leng = 5)
+```
+
+
+#4. (10 points) 
+Using the function you wrote in the previous problem, write a function that randomly draws from a Frechet distribution (F (x) = P (X ≤ x) = e−x−α , x > 0) with parameter α using the inversion method.
+
+$$F(x) = P(X \leq x) = e^{-x^{-\alpha}}, x > 0 $$
+
+Finding the Inverse:
+$$x = e^{-y^{-\alpha}} $$
+$$\iff log(x) = -y^{-\alpha} $$
+$$\iff log(x^{-1}) = y^{-\alpha}$$
+$$\iff log(x^{-1})^{-1/\alpha} = y $$
+
+$$\iff F^{-1}(x) = log(x^{-1})^{-1/\alpha}$$
+
+```{r}
+finv <- function(x, alpha = 1){ log(x^(-1))^(1/alpha)}
+u <- Merc_Twisty(leng = 1000)
+y <- finv(u)
+hist(y)
+
+#library(evd)
+#hist(dfrechet(seq(0,10,.01), loc=0, scale=1, shape=1, log = FALSE) )
+```
+
+
+#5. (20 points) 
+Based on the previous problem, fix α = 1, sample from the distribution 1000 times and store this data. Repeat this with values of α = 2, 3, 4, 5, and 6. Create a 2 x 3 grid displaying the results of these random draws (i.e. the upper left plot should be the histogram corresponding to α = 1, upper right should correspond to α = 2, etc.) Make sure to label your grid.
+```{r}
+u <- Merc_Twisty(leng = 1000)
+
+v <- c(1:6)
+names(v) <- c("Alpha = 1", "Alpha = 2", "Alpha = 3", "Alpha = 4", "Alpha = 5", "Alpha = 6")
+outputs <- v %>% map(function(al){finv(u, alpha = al)}) %>% unlist()
+
+alpha <- rep(c(1:6),1000) %>% sort()
+
+resultsdf <- data.frame(outputs, alpha)
+
+ggplot(resultsdf, aes(x=outputs, group = alpha)) + 
+  geom_histogram(bins = 20) + 
+  facet_wrap(alpha) + 
+  xlab("Frechet Samples") + 
+  ylab("Frequency") + 
+  ggtitle("Simulated Frechet Distributions by Alpha")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
