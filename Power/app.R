@@ -107,12 +107,13 @@ server <- function(input, output) {
   })
   
   output$Population <- renderPlot({
-    Pop <- function(x) {dnorm(x, mean = 0 + input$TRUE_DIFF, sd = input$Std)}
+    #Pop <- function(x) {dnorm(x, mean = 0 + input$TRUE_DIFF, sd = input$Std)}
     if (input$Population_Distribution == "Normal" ){
-      dnorm(input$Sample_Size, mean = 0 + input$TRUE_DIFF, sd = input$Std)
+      Pop <- function(x) {dnorm(x, mean = 0 + input$TRUE_DIFF, sd = input$Std)}
+      #Pop <- function(x) {dnorm(input$Sample_Size, mean = 0 + input$TRUE_DIFF, sd = input$Std)}
     }
     else if (input$Population_Distribution == "Uniform" ){
-      dunif(input$Sample_Size, min = input$TRUE_DIFF - input$Std, max = input$TRUE_DIFF + input$Std)
+      Pop <- function(x) {dunif(x, min = -3.99, max = 11.99)}
     }
     ggplot(data.frame(x = c(-4, 12)), aes(x = x)) +
       #ylim(c(0,0.4)) +
@@ -120,24 +121,6 @@ server <- function(input, output) {
     }
   )
   
-  # output$t_plot <- renderPlot({
-  #   standard <- function(x) {dt(x, df = input$Sample_Size - 1)}
-  #   shifted <- function(x) {dt(x - input$TRUE_DIFF, df = input$Sample_Size - 1)}
-  #   ggplot(data.frame(x = c(-4, 12)), aes(x = x)) +
-  #     ylim(c(0,0.4)) +
-  #     stat_function(fun = shifted, col = "red") + 
-  #     stat_function(fun = standard) + 
-  #     stat_function(fun = shifted, 
-  #                   xlim = c(qt(1 - input$Type_1_Error, df = input$Sample_Size - 1), 12), 
-  #                   geom = "area",
-  #                   col = "red",
-  #                   fill = "red",
-  #                   alpha = .5) +
-  #     stat_function(fun = dt, args = list(df = input$Sample_Size - 1), 
-  #                   xlim = c(qt(1 - input$Type_1_Error, df = input$Sample_Size - 1), 12), 
-  #                   geom = "area",
-  #                   alpha = .5)
-  # })
   output$t_plot <- renderPlot({
     standard <- function(x) {dnorm(x, mean = 0, sd = input$Std / sqrt(input$Sample_Size))}
     shifted <- function(x) {dnorm(x, mean = input$TRUE_DIFF, sd = input$Std / sqrt(input$Sample_Size))}
